@@ -10,6 +10,8 @@ Samplicity is in early beta status and does not support all features in intersec
 
 Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save every time before loading an instrument**
 
+####But what the hell! It helped me to write a [song](http://soundcloud.com/convergent/the-fire)! 
+
 ##Formats
 ###eXtended Instrument
 This format was created in 1990's for DOS music tracker called Fasttracker 2. It's binary, old and rusty, but still useful.
