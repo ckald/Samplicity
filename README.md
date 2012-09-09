@@ -77,6 +77,13 @@ python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE NAME>.sfz" --force
 
 ```
 
+##Package
+Repository contains:
+
+* ```samplicity.py```
+* ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```python <PATH TO SAMPLICITY FOLDER>/xi_reader.py "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is usefull for bugtrack.
+* 
+
 ##Notices and errors
 * **Notice: some notes are out of range and ignored** — .XI supports only 96 notes from C0 to B7, so some notes in your sample pack cannot fit in this range. Consider editing .SFZ file.
 * **Notice: some regions are overlapping and would be overwritten** — .SFZ format supports velocity maps. But .XI doesn't. Consider splitting your .SFZ file into separate files. For example, I've got ```Grand Piano (Piano).sfz``` and ```Grand Piano (Forte).sfz```
