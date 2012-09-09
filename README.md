@@ -24,7 +24,7 @@ Samplicity is writted in [python v2.7.3](http://www.python.org/). To use this to
 ###Sample convertion
 To convert single sample pack, navigate in **terminal/bash/command** line to sample pack folder and run the following command:
 
-```
+```bash
 python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE PACK NAME>.sfz"
 ```
 
