@@ -16,7 +16,7 @@ Samplicity is in early beta status and does not support all features in intersec
 ###eXtended Instrument
 This format was created in 1990's for DOS music tracker called Fasttracker 2. It's binary, old and rusty, but still useful.
 ###SFZ
-Open format by Cakewalk company. Designed for creation in notepad. Sample pack contains .sfz file and a number of samples nearby. See more [here](http://www.cakewalk.com/DevXchange/article.aspx?aid=108)
+Open format by Cakewalk company. Designed for creation in notepad. Sample pack contains .sfz textfile and a number of samples nearby. So, you can create your sample pack without any specific software. See more [here](http://www.cakewalk.com/DevXchange/article.aspx?aid=108)
 
 ##Usage
 Samplicity is writted in [python v2.7.3](http://www.python.org/). To use this tool Python v2.7+ should be installed on your computer.
