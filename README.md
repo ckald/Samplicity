@@ -93,7 +93,7 @@ python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE NAME>.sfz" --force
 Repository contains:
 
 * ```samplicity.py```
-* ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```bash python "<PATH TO SAMPLICITY FOLDER>/xi_reader.py" "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is useful for bugtrack.
+* ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```python "<PATH TO SAMPLICITY FOLDER>/xi_reader.py" "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is useful for bugtrack.
 * ```xi_specs.txt``` — specifications of eXtended Instrument edited and improved a bit. Thanks [Alex Zolotov](http://www.warmplace.ru/)
 * ```Cakewalk DevXchange - Specifications - sfz File Format.pdf``` — specifications of .SFZ saved from Cakewalk [website](http://www.cakewalk.com/DevXchange/article.aspx?aid=108).
 
