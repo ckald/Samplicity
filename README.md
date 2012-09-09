@@ -6,11 +6,17 @@ Samplicity is in early beta status and does not support all features in intersec
 
 Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save every time before loading an instrument**
 
+##Formats
+###eXtended Instrument
+This format was created in 1990's for DOS music tracker called Fasttracker 2. It's binary, old and rusty, but still useful.
+###SFZ
+Open format by Cakewalk company. Designed for creation in notepad. Sample pack contains .sfz file and a number of samples nearby. See more [here](http://www.cakewalk.com/DevXchange/article.aspx?aid=108)
+
 ##Usage
 Samplicity is writted in [python v2.7.3](http://www.python.org/). To use this tool Python v2.7+ should be installed on your computer.
 
 ###Sample convertion
-To convert single sample pack, navigate in terminal/bash/command line to sample pack folder and run the following command:
+To convert single sample pack, navigate in **terminal/bash/command** line to sample pack folder and run the following command:
 
 ```
 python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE PACK NAME>.sfz"
@@ -82,7 +88,8 @@ Repository contains:
 
 * ```samplicity.py```
 * ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```python <PATH TO SAMPLICITY FOLDER>/xi_reader.py "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is usefull for bugtrack.
-* 
+* ```xi_specs.txt``` — specifications of eXtended Instrument edited and improved a bit. Thanks [Alex Zolotov](http://www.warmplace.ru/)
+* ```Cakewalk DevXchange - Specifications - sfz File Format.pdf``` — specifications of .SFZ saved from Cakewalk [website](http://www.cakewalk.com/DevXchange/article.aspx?aid=108).
 
 ##Notices and errors
 * **Notice: some notes are out of range and ignored** — .XI supports only 96 notes from C0 to B7, so some notes in your sample pack cannot fit in this range. Consider editing .SFZ file.
