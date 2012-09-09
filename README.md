@@ -1,5 +1,9 @@
 #Samplicity v0.3
-Samplicity is a command line sample convertion tool created to transform .SFZ sample packs to .XI (Fasttracker 2 eXtended Instrument) format, supported by a number of music creation software.
+Samplicity is a command line sample convertion tool created to transform .SFZ sample packs to .XI (Fasttracker 2 eXtended Instrument) format, supported by a number of music creation software. Designed to deal with SunVox music tracker.
+
+Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
+
+**If you encounter any problems — contact me here, on [SoundCloud](http://soundcloud.com/convergent) or just email me ```andrew.magalich@gmail.com```**
 
 ##Disclaimer
 Samplicity is in early beta status and does not support all features in intersection of .SFZ and .XI. Now it is tested **only** in [SunVox tracker](http://www.warmplace.ru/soft/sunvox/) v1.6 and v1.7.2 with 59 sample packs (in 16bit format) I've got.
