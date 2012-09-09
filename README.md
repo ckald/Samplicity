@@ -8,7 +8,7 @@ Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
 ##Disclaimer
 Samplicity is in early beta status and does not support all features in intersection of .SFZ and .XI. Now it is tested **only** in [SunVox tracker](http://www.warmplace.ru/soft/sunvox/) v1.6 and v1.7.2 with 59 sample packs (in 16bit format) I've got.
 
-Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save every time before loading an instrument**
+Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **```you should save your files every time before loading an instrument```**
 
 ####But what the hell! It helped me to write a [song](http://soundcloud.com/convergent/the-fire)! 
 
