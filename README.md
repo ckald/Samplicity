@@ -25,12 +25,12 @@ Samplicity is writted in [python v2.7.3](http://www.python.org/). To use this to
 To convert single sample pack, navigate in **terminal/bash/command** line to sample pack folder and run the following command:
 
 ```bash
-python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE PACK NAME>.sfz"
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE PACK NAME>.sfz"
 ```
 
 If python is installed, path to samplicity is right and sample pack is a valid .SFZ file, you'll see something like this:
 
-```
+```bash
 --------------------------------------------------------------------------------
 Converting " Keys - Grand Piano (Forte).sfz "
 --------------------------------------------------------------------------------
@@ -76,16 +76,16 @@ Notice: some notes are out of range and ignored
 ###Batch conversion
 To convert more than one .SFZ file you can specify as many arguments to Samplicity as you want. Or even use a wildcard
 
-```
-python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE 1>.sfz" "<SAMPLE 2>.sfz" <SAMPLE 3>.sfz
-python <PATH TO SAMPLICITY FOLDER>/samplicity.py *.sfz 
+```bash
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE 1>.sfz" "<SAMPLE 2>.sfz" "<SAMPLE 3>.sfz"
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" *.sfz 
 ```
 
 ###Reconversion
 If there is corresponding to your sample pack .XI file, Samplicity won't convert it again. To force reconversion, add ```--force``` attribute:
 
-```
-python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE NAME>.sfz" --force 
+```bash
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE NAME>.sfz" --force 
 
 ```
 
@@ -93,7 +93,7 @@ python <PATH TO SAMPLICITY FOLDER>/samplicity.py "<SAMPLE NAME>.sfz" --force
 Repository contains:
 
 * ```samplicity.py```
-* ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```python <PATH TO SAMPLICITY FOLDER>/xi_reader.py "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is useful for bugtrack.
+* ```xi_reader.py``` — tool to verify your .XI if something went wrong. Usage: ```python "<PATH TO SAMPLICITY FOLDER>/xi_reader.py" "<SAMPLE NAME>.xi"```. It will show you full info, contained in .XI file (but not samples binary data). It is useful for bugtrack.
 * ```xi_specs.txt``` — specifications of eXtended Instrument edited and improved a bit. Thanks [Alex Zolotov](http://www.warmplace.ru/)
 * ```Cakewalk DevXchange - Specifications - sfz File Format.pdf``` — specifications of .SFZ saved from Cakewalk [website](http://www.cakewalk.com/DevXchange/article.aspx?aid=108).
 
