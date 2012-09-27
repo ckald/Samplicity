@@ -1,16 +1,24 @@
-#Samplicity v0.3
+#Samplicity v0.4
 Samplicity is a command line sample convertion tool created to transform .SFZ sample packs to .XI (Fasttracker 2 eXtended Instrument) format, supported by a number of music creation software. Designed to deal with SunVox music tracker.
 
 Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
 
 **If you encounter any problems — contact me here, on [SoundCloud](http://soundcloud.com/convergent) or just email me ```andrew.magalich@gmail.com```**
 
+## Changelog
+
+### v0.4 September 27th, 2012
+
+* Added sample count constraint (no more than 128 per file) – -1 observed error
+* Moved temp files to system temp dir – job done clear now
+* Fixed envelope length and seconds-to-ticks conversion parameter — no more SunVox crashes
+
 ##Disclaimer
 Samplicity is in early beta status and does not support all features in intersection of .SFZ and .XI. Now it is tested **only** in [SunVox tracker](http://www.warmplace.ru/soft/sunvox/) v1.6 and v1.7.2 with 59 sample packs (in 16bit format) I've got.
 
-> Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save your files every time before loading an instrument** 
+> Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save your files every time before loading an instrument**
 
-####But what the hell! It helped me to write a [song](http://soundcloud.com/convergent/the-fire)! 
+####But what the hell! It helped me to write a [song](http://soundcloud.com/convergent/the-fire)!
 
 ##Formats
 ###eXtended Instrument
@@ -78,14 +86,14 @@ To convert more than one .SFZ file you can specify as many arguments to Samplici
 
 ```bash
 python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE 1>.sfz" "<SAMPLE 2>.sfz" "<SAMPLE 3>.sfz"
-python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" *.sfz 
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" *.sfz
 ```
 
 ###Reconversion
 If there is corresponding to your sample pack .XI file, Samplicity won't convert it again. To force reconversion, add ```--force``` attribute:
 
 ```bash
-python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE NAME>.sfz" --force 
+python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE NAME>.sfz" --force
 
 ```
 
@@ -100,5 +108,4 @@ Repository contains:
 ##Notices and errors
 * **Notice: some notes are out of range and ignored** — .XI supports only 96 notes from C0 to B7, so some notes in your sample pack cannot fit in this range. Consider editing .SFZ file.
 * **Notice: some regions are overlapping and would be overwritten** — .SFZ format supports velocity maps. But .XI doesn't. Consider splitting your .SFZ file into separate files. For example, I've got ```Grand Piano (Piano).sfz``` and ```Grand Piano (Forte).sfz```
-* **24bit samples are not supported** — .XI and Sunvox don't support 24bit sample format and there is no cooldown feature for them in Samplicity v0.3 
-	
+* **24bit samples are not supported** — .XI and Sunvox don't support 24bit sample format and there is no cooldown feature for them in Samplicity v0.3

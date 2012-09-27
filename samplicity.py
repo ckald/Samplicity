@@ -1,12 +1,19 @@
+# Samplicity v0.4
+# September 27th, 2012
+# © Magalich Andrew
+# https://github.com/ckald/Samplicity
+
 import struct
 import string
 import os
+import tempfile
 import wave
 import sys
 import sndhdr
 from array import array
 import time
 import math
+import shutil
 
 
 if len(sys.argv) < 2:
@@ -21,9 +28,11 @@ else:
 
 cwd = os.getcwd() + '/'
 
+tempdir = tempfile.mkdtemp()
+
 scale = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 notes = []
-for i in range(10):
+for i in range(11):
     for note in scale:
         notes.append(note + str(i))
 
@@ -128,6 +137,10 @@ class SFZ_region(dict):
             if 'hikey' not in self:
                 self['hikey'] = self['pitch_keycenter']
 
+        for key in ('pitch_keycenter', 'lokey', 'hikey'):
+            if key in self and self[key].isdigit():
+                self[key] = notes[int(self[key])]
+
     def load_audio(self):
         self['sample_path'] = self['sample'].replace('\\', '/')
         if self['sample_path'][-4:] == '.wav':
@@ -171,6 +184,9 @@ class SFZ_instrument:
             self.in_region = False
             self.group = {}
         elif chunk == '<region>':  # it's a region - save the following and add group data
+            if len(self.regions) >= 128:
+                print "To many samples in file:", self.filename, " (no more than 128 samples supported)"
+                sys.exit()
             self.regions.append(SFZ_region())
             self.curr += 1
             if self.in_group:
@@ -215,7 +231,7 @@ class SFZ_instrument:
             hi = notes.index(region['hikey'])
             region['notes'] = range(lo, hi + 1)
             region.load_audio()
-            region['delta_sample'] = str(time.clock()) + '.dat'
+            region['delta_sample'] = tempdir + str(time.clock()) + '.dat'
             region['sample_length'] = len(region['sample_data'])
             df = open(region['delta_sample'], 'w')
 
@@ -290,67 +306,89 @@ def magic(filename):
 
     file.write(struct.pack('96b', *(notes_samples)))
 
-    #file.write(struct.pack('96b', *(0 for i in range(96))))  # envelopes
+    stt = 50  # seconds-to-ticks converter
 # volume envelope
     volume_points = 0
     volume_ticks = 0
+    volume_envelope = []
     if 'ampeg_attack' not in region:
         volume_level = 0x40
     else:
         volume_level = 0
     vol_sustain_point = 0
 
-    file.write(struct.pack('h', volume_ticks))
+    #file.write(struct.pack('h', volume_ticks))
+    volume_envelope.append(volume_ticks)
     if 'ampeg_delay' in region:
-        volume_ticks += float(region['ampeg_delay']) * 0x40
+        volume_ticks += float(region['ampeg_delay']) * stt
         volume_points += 1
         volume_level = 0
 
-        file.write(struct.pack('h', volume_level))
-        file.write(struct.pack('h', volume_ticks))
+        #file.write(struct.pack('h', volume_level))
+        volume_envelope.append(volume_level)
+        #file.write(struct.pack('h', volume_ticks))
+        volume_envelope.append(volume_ticks)
 
     if 'ampeg_start' in region:
-        volume_level = int(float(region['ampeg_start']) / 100 * 0x40)
+        volume_level = int(float(region['ampeg_start']) / 100 * stt)
 
     if 'ampeg_attack' in region:
-        volume_ticks += int(float(region['ampeg_attack']) * 0x40)
+        volume_ticks += int(float(region['ampeg_attack']) * stt)
 
-    file.write(struct.pack('h', volume_level))
+    #file.write(struct.pack('h', volume_level))
+    volume_envelope.append(volume_level)
     volume_points += 1
 
     if 'ampeg_hold' in region:
-        volume_ticks += int(float(region['ampeg_hold']) * 0x40)
+        volume_ticks += int(float(region['ampeg_hold']) * stt)
     else:
         volume_level = 0x40
-    file.write(struct.pack('h', volume_ticks))
-    file.write(struct.pack('h', volume_level))
+    #file.write(struct.pack('h', volume_ticks))
+    volume_envelope.append(volume_ticks)
+    #file.write(struct.pack('h', volume_level))
+    volume_envelope.append(volume_level)
     volume_points += 1
 
     if 'ampeg_decay' in region:
-        volume_ticks += int(float(region['ampeg_decay']) * 0x40)
-        file.write(struct.pack('h', volume_ticks))
+        volume_ticks += int(float(region['ampeg_decay']) * stt)
+        #file.write(struct.pack('h', volume_ticks))
+        volume_envelope.append(volume_ticks)
 
         if 'ampeg_sustain' in region:
-            file.write(struct.pack('h', int(float(region['ampeg_sustain']) / 100 * 0x40)))
+            #file.write(struct.pack('h', int(float(region['ampeg_sustain']) / 100 * stt)))
+            volume_envelope.append(int(float(region['ampeg_sustain']) / 100 * stt))
         else:
-            file.write(struct.pack('h', 0))
+            #file.write(struct.pack('h', 0))
+            volume_envelope.append(0)
 
         volume_points += 1
 
     if 'ampeg_sustain' in region:
-        volume_level = int(float(region['ampeg_sustain']) / 100 * 0x40)
-        file.write(struct.pack('h', volume_ticks))
-        file.write(struct.pack('h', volume_level))
+        volume_level = int(float(region['ampeg_sustain']) / 100 * stt)
+        #file.write(struct.pack('h', volume_ticks))
+        volume_envelope.append(volume_ticks)
+        #file.write(struct.pack('h', volume_level))
+        volume_envelope.append(volume_level)
         volume_points += 1
         vol_sustain_point = volume_points - 1
 
     if 'ampeg_release' in region:
-        volume_ticks += int(float(region['ampeg_release']) * 0x40)
+        volume_ticks += int(float(region['ampeg_release']) * stt)
         volume_level = 0x0
-        file.write(struct.pack('h', volume_ticks))
-        file.write(struct.pack('h', volume_level))
+        #file.write(struct.pack('h', volume_ticks))
+        volume_envelope.append(volume_ticks)
+        #file.write(struct.pack('h', volume_level))
+        volume_envelope.append(volume_level)
         volume_points += 1
 
+    if volume_ticks > 512:
+        for i in range(len(volume_envelope) / 2):
+            volume_envelope[2 * i] = int(volume_envelope[2 * i] * 512 / volume_ticks)
+        print "/" * 80
+        print "Too long envelope:", volume_ticks, "ticks, shrinked to 512"
+        print "/" * 80
+
+    file.write(struct.pack('{0}h'.format(2 * volume_points), *(volume_envelope)))
     file.write(struct.pack('{0}h'.format(2 * (12 - volume_points)), *(0 for i in range(2 * (12 - volume_points)))))
     #envelope = [0, 64, 4, 50, 8, 36, 13, 28, 20, 22, 33, 18, 47, 14, 62, 8, 85, 4, 161, 0, 100, 0, 110, 0]
     #file.write(struct.pack('24h', *(envelope)))
@@ -433,15 +471,23 @@ def magic(filename):
 start_time = time.clock()
 converted = 0
 
-for arg in sys.argv[1:]:
-    if not os.path.exists(cwd + arg[:-4] + '.xi') or force:
-        print '-' * 80
-        print "Converting \"", arg, "\""
-        print '-' * 80
-        magic(arg)
-        converted += 1
-    else:
-        print "File", arg, "is already converted!"
+try:
+    for arg in sys.argv[1:]:
+        if not os.path.exists(cwd + arg[:-4] + '.xi') or force:
+            print '-' * 80
+            print "Converting \"", arg, "\""
+            print '-' * 80
+            magic(arg)
+            converted += 1
+        else:
+            print "File", arg, "is already converted!"
 
-print ''
-print converted, "files converted in", time.clock() - start_time, "seconds"
+    print ''
+    print converted, "files converted in", time.clock() - start_time, "seconds"
+
+finally:
+    try:
+        shutil.rmtree(tempdir)  # delete directory
+    except OSError, e:
+        if e.errno != 2:  # code 2 - no such file or directory
+            raise
