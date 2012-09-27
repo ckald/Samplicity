@@ -109,3 +109,5 @@ Repository contains:
 * **Notice: some notes are out of range and ignored** — .XI supports only 96 notes from C0 to B7, so some notes in your sample pack cannot fit in this range. Consider editing .SFZ file.
 * **Notice: some regions are overlapping and would be overwritten** — .SFZ format supports velocity maps. But .XI doesn't. Consider splitting your .SFZ file into separate files. For example, I've got ```Grand Piano (Piano).sfz``` and ```Grand Piano (Forte).sfz```
 * **24bit samples are not supported** — .XI and Sunvox don't support 24bit sample format and there is no cooldown feature for them in Samplicity v0.3
+* **Too long envelope, shrinked to 512** — .XI does not support envelopes longer than 512 tick (~10.24 seconds), so you instrument envelope was modified to fit this range
+* **Too many samples in file** — .XI does not support more than 128 samples in instrument. Consider splitting your file or removing some.
