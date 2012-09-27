@@ -185,7 +185,7 @@ class SFZ_instrument:
             self.group = {}
         elif chunk == '<region>':  # it's a region - save the following and add group data
             if len(self.regions) >= 128:
-                print "To many samples in file:", self.filename, " (no more than 128 samples supported)"
+                print "Too many samples in file:", self.filename, " (no more than 128 samples supported)"
                 sys.exit()
             self.regions.append(SFZ_region())
             self.curr += 1
