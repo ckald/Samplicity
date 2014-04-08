@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Samplicity v0.4
 # September 27th, 2012
 # © Magalich Andrew
