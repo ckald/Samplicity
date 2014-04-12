@@ -252,7 +252,7 @@ class SFZ_instrument:
         self.regions = used_regions
 
         if unused_regions and OPTIONS['verbose']:
-            wrap("/"*10 + ' Notice: some regions are not used, skipping:')
+            wrap("/"*10 + ' Notice: some samples are not used, skipping:')
             wrap(", ".join([str(i+1) for i in unused_regions]))
 
         self.options = {}
@@ -450,7 +450,7 @@ def main():
     try:
         for arg in sys.argv[1:]:
             if not os.path.exists(cwd + arg):
-                print 'No file', arg, 'found, skipping'
+                print 'Warning: No file', arg, 'found, skipping'
             elif not os.path.exists(cwd + arg[:-4] + '.xi') or OPTIONS['force']:
                 print '-' * 80
                 print "Converting \"", arg, "\""
