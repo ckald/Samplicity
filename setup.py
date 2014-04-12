@@ -1,4 +1,5 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
+
 
 setup(name='samplicity',
       version='0.5',
@@ -6,9 +7,13 @@ setup(name='samplicity',
       author="Andii Magalich",
       author_email="andrew.magalich@gmail.com",
       url="https://github.com/ckald/Samplicity",
-      package_dir={'': 'source'},
-      packages=[''],
-      py_modules=['samplicity'],
-      requires=["scikits.audiolab"],
-      long_description=open('README.rst').read()
+      packages=find_packages(exclude=["contrib", "docs", "tests*"]),
+      # py_modules=['samplicity.samplicity'],
+      install_requires=["scikits.audiolab", "numpy"],
+      long_description=open('README.rst').read(),
+      entry_points={
+          'console_scripts': [
+              'samplicity=samplicity:main'
+          ],
+      }
       )

@@ -17,34 +17,12 @@ import shutil
 import numpy as np
 from scikits.audiolab import Sndfile, play
 
-
-VERSION = 'Samplicity v0.5'
+__version__ = '0.5'
+VERSION = 'Samplicity v' + __version__
 
 OPTIONS = {}
 
-if len(sys.argv) < 2:
-    print "No input file specified"
-    sys.exit()
-
-OPTIONS['force'] = False
-if '--force' in sys.argv:
-    OPTIONS['force'] = True
-    del sys.argv[sys.argv.index('--force')]
-
-OPTIONS['play_sound'] = False
-if '--play' in sys.argv:
-    OPTIONS['play_sound'] = True
-    del sys.argv[sys.argv.index('--play')]
-
-OPTIONS['verbose'] = 1
-if '--verbose' in sys.argv:
-    index = sys.argv.index('--verbose')
-    OPTIONS['verbose'] = int(sys.argv[index + 1])
-    del sys.argv[index]
-    del sys.argv[index]
-
 cwd = os.getcwd() + '/'
-
 tempdir = tempfile.mkdtemp()
 
 scale = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
@@ -212,7 +190,7 @@ class SFZ_instrument:
     def is_region_used(self, i):
         return any([j == i for j in self.notes_samples])
 
-    def collect_samples(self):
+    def collect_samples(self, do_print=True):
         self.overlapping = []
         self.ignored = []
 
@@ -225,13 +203,13 @@ class SFZ_instrument:
                 else:
                     self.ignored.append(notes[note])
 
-        if OPTIONS['verbose']:
+        if do_print and OPTIONS['verbose']:
             if len(self.overlapping) > 0:
                 wrap("/"*10 + " Notice: some regions are overlapping and would be overwritten")
                 wrap(", ".join(self.overlapping))
             if len(self.ignored) > 0:
                 wrap("/"*10 + " Notice: some notes are out of range and ignored")
-                wrap(", ".join(self.ignored))
+                wrap(", ".join(set(self.ignored)))
 
     def __init__(self, file):
         self.open(file)
@@ -274,13 +252,14 @@ class SFZ_instrument:
         self.regions = used_regions
 
         if unused_regions and OPTIONS['verbose']:
-            wrap("/"*10 + ' Notice: some regions are not used, skipping:', str(unused_regions))
+            wrap("/"*10 + ' Notice: some regions are not used, skipping:')
+            wrap(", ".join([str(i+1) for i in unused_regions]))
 
         self.options = {}
         for region in self.regions:
             self.options.update(region)
 
-        self.collect_samples()
+        self.collect_samples(do_print=False)
 
     def write_header(self):
         # create xi file
@@ -439,44 +418,71 @@ class SFZ_instrument:
             region = {}
             del region
 
-start_time = time.clock()
-converted = 0
 
-try:
-    for arg in sys.argv[1:]:
-        if not os.path.exists(cwd + arg):
-            print 'No file', arg, 'found, skipping'
-        elif not os.path.exists(cwd + arg[:-4] + '.xi') or OPTIONS['force']:
-            print '-' * 80
-            print "Converting \"", arg, "\""
-            print '-' * 80
+def main():
 
-            start = time.clock()
-            instrument = SFZ_instrument(cwd + arg)
+    if len(sys.argv) < 2:
+        print "No input file specified"
+        sys.exit()
 
-            instrument.write_header()
-            instrument.write_envelopes()
-            instrument.write_regions_meta()
-            instrument.write_regions()
+    OPTIONS['force'] = False
+    if '--force' in sys.argv:
+        OPTIONS['force'] = True
+        del sys.argv[sys.argv.index('--force')]
 
-            print len(instrument.regions), 'samples,',
-            print instrument.output_file.tell() / 1024,
-            print 'kB written during', time.clock() - start, 'seconds'
-            instrument.output_file.close()
-            instrument = {}
-            del instrument
-            os.rename(cwd + arg[:-4] + '.temp.xi', cwd + arg[:-4] + '.xi')
+    OPTIONS['play_sound'] = False
+    if '--play' in sys.argv:
+        OPTIONS['play_sound'] = True
+        del sys.argv[sys.argv.index('--play')]
 
-            converted += 1
-        else:
-            print "File", arg, "is already converted!"
+    OPTIONS['verbose'] = 1
+    if '--verbose' in sys.argv:
+        index = sys.argv.index('--verbose')
+        OPTIONS['verbose'] = int(sys.argv[index + 1])
+        del sys.argv[index]
+        del sys.argv[index]
 
-    print ''
-    print converted, "files converted in", time.clock() - start_time, "seconds"
-
-finally:
+    start_time = time.clock()
+    converted = 0
     try:
-        shutil.rmtree(tempdir)  # delete directory
-    except OSError, e:
-        if e.errno != 2:  # code 2 - no such file or directory
-            raise e
+        for arg in sys.argv[1:]:
+            if not os.path.exists(cwd + arg):
+                print 'No file', arg, 'found, skipping'
+            elif not os.path.exists(cwd + arg[:-4] + '.xi') or OPTIONS['force']:
+                print '-' * 80
+                print "Converting \"", arg, "\""
+                print '-' * 80
+
+                start = time.clock()
+                instrument = SFZ_instrument(cwd + arg)
+
+                instrument.write_header()
+                instrument.write_envelopes()
+                instrument.write_regions_meta()
+                instrument.write_regions()
+
+                print
+                print len(instrument.regions), 'samples,',
+                print instrument.output_file.tell() / 1024,
+                print 'kB written during', time.clock() - start, 'seconds'
+                print
+                instrument.output_file.close()
+                instrument = {}
+                del instrument
+                os.rename(cwd + arg[:-4] + '.temp.xi', cwd + arg[:-4] + '.xi')
+
+                converted += 1
+            else:
+                print "File", arg, "is already converted!"
+
+        print converted, "files converted in", time.clock() - start_time, "seconds"
+
+    finally:
+        try:
+            shutil.rmtree(tempdir)  # delete directory
+        except OSError, e:
+            if e.errno != 2:  # code 2 - no such file or directory
+                raise e
+
+if __name__ == '__main__':
+    main()
