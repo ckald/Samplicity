@@ -403,7 +403,7 @@ class SFZ_instrument:
 def main():
 
     if len(sys.argv) < 2:
-        print "Samplicity v" + __version__ + ": .SFZ to .XI musical samples format converter"
+        print VERSION + ": .SFZ to .XI musical samples format converter"
         print "Usage:"
         print "    samplicity [--play] [--verbose N] [--force] file ..."
         print "See docs at https://github.com/ckald/Samplicity"
