@@ -1,3 +1,6 @@
+from samplicity.ez_setup import use_setuptools
+use_setuptools()
+
 from setuptools import setup, find_packages
 from samplicity.samplicity import __version__ as version
 
