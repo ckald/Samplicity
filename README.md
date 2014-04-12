@@ -15,6 +15,7 @@ Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
 * Excess samples are no longer added to resulting .XI file
 * New notice about omitted excess samples
 * Conversion speed increased dramatically
+* Case insensitive path matching to deal with SFZ-files created on different platforms
 
 ### v0.4 September 27th, 2012
 

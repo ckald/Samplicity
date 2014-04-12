@@ -26,6 +26,8 @@ v0.5 April 12th, 2014
 -  Excess samples are no longer added to resulting .XI file
 -  New notice about omitted excess samples
 -  Conversion speed increased dramatically
+-  Case insensitive path matching to deal with SFZ-files created on
+   different platforms
 
 v0.4 September 27th, 2012
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -239,9 +241,9 @@ Notices and errors
    .SFZ format supports velocity maps. But .XI doesn't. Consider
    splitting your .SFZ file into separate files. For example, I've got
    ``Grand Piano (Piano).sfz`` and ``Grand Piano (Forte).sfz``
--  **24bit samples are not supported** — .XI and Sunvox don't support
-   24bit sample format and there is no cooldown feature for them in
-   Samplicity v0.3
+-  **Notice: some samples are not used, skipping** – Some SFZ-regions
+   did not make it to the final key mapping, so they will be skipped to
+   reduce the file size
 -  **Too long envelope, shrinked to 512** — .XI does not support
    envelopes longer than 512 ticks (~10.24 seconds), so you instrument
    envelope was modified to fit this range

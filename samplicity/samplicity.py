@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Samplicity v0.5
+# Samplicity
+__version__ = '0.5.1'
 # April 12th, 2014
-# © Andrii Magalich
+# Andrii Magalich
 # https://github.com/ckald/Samplicity
 
 import struct
@@ -17,7 +18,8 @@ import shutil
 import numpy as np
 from scikits.audiolab import Sndfile, play
 
-__version__ = '0.5'
+from common import wrap, pad_name, path_insensitive
+
 VERSION = 'Samplicity v' + __version__
 
 OPTIONS = {}
@@ -30,28 +32,6 @@ notes = []
 for i in range(11):
     for note in scale:
         notes.append(note + str(i))
-
-
-def pad_name(name, length, pad=' ', dir='right'):
-    if dir == 'right':
-        return (name + pad * length)[:length]
-    else:
-        return (name + pad * length)[-length:]
-
-
-def wrap(text, width=80):
-    """
-    A word-wrap function that preserves existing line breaks
-    and most spaces in the text. Expects that existing line
-    breaks are posix newlines (\n).
-    """
-    print reduce(
-        lambda line, word, width=width: '%s%s%s' % (
-            line,
-            ' \n'[(len(line) - line.rfind('\n') - 1 + len(word.split('\n', 1)[0]) >= width)],
-            word
-        ), text.split(' ')
-    )
 
 
 class SFZ_region(dict):
@@ -76,6 +56,7 @@ class SFZ_region(dict):
         self['sample_path'] = os.path.normpath(self['sample'])
         if not os.path.exists(self['sample_path']):
             self['sample_path'] = self['sample_path'].replace('\\', '/')
+        self['sample_path'] = path_insensitive(self['sample_path'])
         self.read_wav(self['sample_path'])
 
     def read_wav(self, sample_path):
