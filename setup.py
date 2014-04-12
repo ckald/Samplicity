@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
-
+from samplicity.samplicity import __version__ as version
 
 setup(name='samplicity',
-      version='0.5',
+      version=version,
       description=".SFZ to .XI musical samples format converter",
       author="Andii Magalich",
       author_email="andrew.magalich@gmail.com",
