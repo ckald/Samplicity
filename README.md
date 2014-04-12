@@ -39,7 +39,14 @@ Open format by Cakewalk company. Designed for creation in notepad. Sample pack c
 Samplicity is written in [python v2.7.3](http://www.python.org/). To use this tool Python v2.7+ should be installed on your computer.
 
 ### Installation
-To install this package, simply download and run in its directory:
+
+If you use ```pip```, you can just
+
+```bash
+pip install samplicity
+```
+
+To manually install this package, simply download and run in its directory:
 
 ```bash
 python setup.py install
