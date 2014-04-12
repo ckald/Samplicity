@@ -422,7 +422,10 @@ class SFZ_instrument:
 def main():
 
     if len(sys.argv) < 2:
-        print "No input file specified"
+        print "Samplicity v" + __version__ + ": .SFZ to .XI musical samples format converter"
+        print "Usage:"
+        print "    samplicity [--play] [--verbose N] [--force] file ..."
+        print "See docs at https://github.com/ckald/Samplicity"
         sys.exit()
 
     OPTIONS['force'] = False
