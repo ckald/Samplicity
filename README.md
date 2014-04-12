@@ -41,7 +41,11 @@ Samplicity is written in [python v2.7.3](http://www.python.org/). To use this to
 
 ### Installation
 
-If you use ```pip```, you can just
+**It is highly recommended to use ```pip``` for installation because manual installation can be rather complicated**
+
+Pip installation [docs](http://pip.readthedocs.org/en/latest/installing.html)
+
+If you have ```pip```, you can just
 
 ```bash
 pip install samplicity

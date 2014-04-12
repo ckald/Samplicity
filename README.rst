@@ -75,7 +75,13 @@ use this tool Python v2.7+ should be installed on your computer.
 Installation
 ~~~~~~~~~~~~
 
-If you use ``pip``, you can just
+**It is highly recommended to use ``pip`` for installation because
+manual installation can be rather complicated**
+
+Pip installation
+`docs <http://pip.readthedocs.org/en/latest/installing.html>`__
+
+If you have ``pip``, you can just
 
 .. code:: bash
 
