@@ -1,4 +1,4 @@
-#Samplicity v0.4
+# Samplicity v0.5
 Samplicity is a command line sample convertion tool created to transform .SFZ sample packs to .XI (Fasttracker 2 eXtended Instrument) format, supported by a number of music creation software. Designed to deal with SunVox music tracker.
 
 Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
@@ -7,29 +7,38 @@ Thanks to [Alex Zolotov](http://www.warmplace.ru/) for help and materials.
 
 ## Changelog
 
+### v0.5 April 12th, 2014
+
+* Various WAV types support thanks to scikits.audiolab.SndFile (including 24bit!)
+* Runtime option "--play": play all samples converted
+* Runtime option "--verbose %": set output verbosity to % (0/1/2)
+* Excess samples are no longer added to resulting .XI file
+* New notice about omitted excess samples
+* Conversion speed increased dramatically
+
 ### v0.4 September 27th, 2012
 
 * Added sample count constraint (no more than 128 per file) – -1 observed error
 * Moved temp files to system temp dir – job done clear now
 * Fixed envelope length and seconds-to-ticks conversion parameter — no more SunVox crashes
 
-##Disclaimer
+## Disclaimer
 Samplicity is in early beta status and does not support all features in intersection of .SFZ and .XI. Now it is tested **only** in [SunVox tracker](http://www.warmplace.ru/soft/sunvox/) v1.6 and v1.7.2 with 59 sample packs (in 16bit format) I've got.
 
 > Crashes of SunVox are known to me for wrongly encoded .XI-instruments, so **you should save your files every time before loading an instrument**
 
-####But what the hell! It helped me to write a [song](http://soundcloud.com/convergent/the-fire)!
+#### But what the hell! It helped me to write some [songs](http://soundcloud.com/convergent)!
 
-##Formats
-###eXtended Instrument
+## Formats
+### eXtended Instrument
 This format was created in 1990's for DOS music tracker called Fasttracker 2. It's binary, old and rusty, but still useful.
-###SFZ
+### SFZ
 Open format by Cakewalk company. Designed for creation in notepad. Sample pack contains .sfz textfile and a number of samples nearby. So, you can create your sample pack without any specific software. See more [here](http://www.cakewalk.com/DevXchange/article.aspx?aid=108)
 
-##Usage
+## Usage
 Samplicity is writted in [python v2.7.3](http://www.python.org/). To use this tool Python v2.7+ should be installed on your computer.
 
-###Sample convertion
+### Sample convertion
 To convert single sample pack, navigate in **terminal/bash/command** line to sample pack folder and run the following command:
 
 ```bash

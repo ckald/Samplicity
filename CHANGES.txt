@@ -1,0 +1,2 @@
+v0.5, 12.04.2014 -- Faster, with wider samples support
+v0.4, 27.09.2012 -- Initial release
