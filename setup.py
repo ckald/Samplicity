@@ -8,7 +8,6 @@ setup(name='samplicity',
       author_email="andrew.magalich@gmail.com",
       url="https://github.com/ckald/Samplicity",
       packages=find_packages(exclude=["contrib", "docs", "tests*"]),
-      # py_modules=['samplicity.samplicity'],
       install_requires=["scikits.audiolab", "numpy"],
       long_description=open('README.rst').read(),
       entry_points={
