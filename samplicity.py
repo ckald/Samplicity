@@ -1,30 +1,47 @@
-# Samplicity v0.4
-# September 27th, 2012
-# © Magalich Andrew
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Samplicity v0.5
+# April 12th, 2014
+# © Andrii Magalich
 # https://github.com/ckald/Samplicity
 
 import struct
 import string
 import os
 import tempfile
-import wave
 import sys
-import sndhdr
-from array import array
 import time
 import math
 import shutil
+import numpy as np
+from scikits.audiolab import Sndfile, play
 
+
+VERSION = 'Samplicity v0.5'
+
+OPTIONS = {}
 
 if len(sys.argv) < 2:
     print "No input file specified"
     sys.exit()
 
+OPTIONS['force'] = False
 if '--force' in sys.argv:
-    force = True
+    OPTIONS['force'] = True
     del sys.argv[sys.argv.index('--force')]
-else:
-    force = False
+
+OPTIONS['play_sound'] = False
+if '--play' in sys.argv:
+    OPTIONS['play_sound'] = True
+    del sys.argv[sys.argv.index('--play')]
+
+OPTIONS['verbose'] = 1
+if '--verbose' in sys.argv:
+    index = sys.argv.index('--verbose')
+    OPTIONS['verbose'] = int(sys.argv[index + 1])
+    del sys.argv[index]
+    del sys.argv[index]
 
 cwd = os.getcwd() + '/'
 
@@ -44,83 +61,19 @@ def pad_name(name, length, pad=' ', dir='right'):
         return (name + pad * length)[-length:]
 
 
-def read_wav(sample_path):
-    (format, sampling_rate, channels, frames_count, bits_per_sample) = sndhdr.what(cwd + sample_path)
-    sample = wave.open(cwd + sample_path)
-
-    if frames_count == -1:
-        frames_count = sample.getnframes()
-
-    if format != 'wav':
-        print 'This is not wav file:', sample_path
-
-    if channels == 1:
-        text_type = 'mono'
-        sample_type = 0
-    elif channels == 2:
-        text_type = 'stereo'
-        sample_type = 0b01010000
-    else:
-        text_type = '{0}-channels'.format(channels)
-
-    byte = bits_per_sample / 8  # sample.getsampwidth()
-
-    if byte == 3:  # for some reason
-        print "*", (byte * 8), 'bit', text_type, 'sample "', sample_path, '"', byte * frames_count / 2 ** 9, 'kB'
-    else:
-        print "*", (byte * 8), 'bit', text_type, 'sample "', sample_path, '"', byte * frames_count / 2 ** 10, 'kB'
-
-    if byte == 1:
-        bittype = 'B'
-        scissors = 0xFF
-    elif byte == 2:
-        bittype = 'H'
-        scissors = 0xFFFF
-    elif byte == 3:
-        scissors = 0xFFFFFF
-        bittype = 'I'
-        print "/" * 80
-        print '24bit samples are not supported'
-        print "/" * 80
-        # return ([], sample_type)
-    elif byte == 4:
-        scissors = 0xFFFFFFFF
-        bittype = 'I'
-
-    delta = 0
-    frames = []
-    total_len = byte * frames_count
-
-    if byte == 3:  # need to treat this independently for some reason. maybe, python.wave bug?
-        frames = struct.unpack("<{0}B".format(total_len * 2), sample.readframes(total_len))
-        # frames = []
-        # for i in range(total_len / 2):
-        #     bytes = struct.unpack('<6B', sample.readframes(1))
-        #     for j in range(len(bytes) / 3):
-        #         frames.append(bytes[j] + bytes[j + 1] << 0xFF + bytes[j + 2] << 0xFFFF)
-                # 'cause little-endian
-        # bytes = struct.unpack("<{0}".format(total_len / 2) + bittype, sample.readframes(total_len))
-        # for i in range(total_len / 3):
-        #     frames.append(bytes[i] + bytes[i + 1] << 0xFF + bytes[i + 2] << 0xFFFF)
-            # 'cause little-endian
-    else:
-        for i in range(total_len / 2 ** 9 + 1):
-            r = sample.readframes(2 ** 9)
-            frames[len(frames):] = struct.unpack("<{0}".format(len(r) / byte) + bittype, r)
-
-    sample.close()
-    del sample
-
-    ret = array(bittype)
-    for frame in frames:
-        original = frame
-        frame = (frame - delta) & scissors
-        delta = original
-        ret.append(frame)
-
-    frames = []
-    del frames
-    return (ret, sample_type, byte)
+def wrap(text, width=80):
+    """
+    A word-wrap function that preserves existing line breaks
+    and most spaces in the text. Expects that existing line
+    breaks are posix newlines (\n).
+    """
+    print reduce(
+        lambda line, word, width=width: '%s%s%s' % (
+            line,
+            ' \n'[(len(line) - line.rfind('\n') - 1 + len(word.split('\n', 1)[0]) >= width)],
+            word
+        ), text.split(' ')
+    )
 
 
 class SFZ_region(dict):
@@ -142,28 +95,70 @@ class SFZ_region(dict):
                 self[key] = notes[int(self[key])]
 
     def load_audio(self):
-        self['sample_path'] = self['sample'].replace('\\', '/')
-        if self['sample_path'][-4:] == '.wav':
-            (self['sample_data'], self['sample_type'], self['sample_bittype']) = read_wav(self['sample_path'])
+        self['sample_path'] = os.path.normpath(self['sample'])
+        if not os.path.exists(self['sample_path']):
+            self['sample_path'] = self['sample_path'].replace('\\', '/')
+        self.read_wav(self['sample_path'])
+
+    def read_wav(self, sample_path):
+
+        sample = Sndfile(cwd + sample_path, 'r')
+        sampling_rate = sample.samplerate
+        channels = sample.channels
+        encoding = sample.encoding
+        frames_count = sample.nframes
+
+        frames = sample.read_frames(frames_count, dtype=np.float32)
+        sample.close()
+        del sample
+
+        if channels == 1:
+            text_type = 'mono'
+            sample_type = 0
+        elif channels == 2:
+            text_type = 'stereo'
+            sample_type = 0b01100100
+        else:
+            text_type = '{0}-channels'.format(channels)
+
+        if OPTIONS['verbose'] > 1:
+            print "*", encoding, text_type, 'sample "', sample_path, '"', 4 * frames_count, 'kB'
+
+        if OPTIONS['play_sound']:
+            play(frames.astype(np.float64).T, sampling_rate)
+
+        self.update({
+            'sample_data': frames,
+            'sample_type': sample_type,
+            'channels': 2,
+            'sample_bittype': 4
+        })
 
 
 class SFZ_instrument:
-    group = {}
+    group_settings = {}
+    groups = [[]]
     regions = []
     curr = -1
-    file = ''
+    input_file = None
+    output_file = None
     last_chunk = False
+    notes_samples = [-1 for i in xrange(96)]
+
+    class ParseError(Exception):
+        pass
 
     def open(self, file):
         self.filename = file
-        self.file = open(file, 'r')
-        return self.file
+        self.input_file = open(file, 'r')
+
+        self.output_file = open(self.filename[:-4] + '.temp.xi', 'w')
 
     def close(self):
-        self.file.close()
+        self.input_file.close()
 
     def read(self):
-        return self.file.readline()
+        return self.input_file.readline()
 
     def parse_line(self, line):
         line = string.strip(line, ' \r\n')
@@ -181,33 +176,62 @@ class SFZ_instrument:
     def parse_chunk(self, chunk):
         if chunk == '<group>':  # it's a group - lets remember the following
             self.in_group = True
+            self.groups.append([])
             self.in_region = False
-            self.group = {}
+            self.group_settings = {}
         elif chunk == '<region>':  # it's a region - save the following and add group data
             if len(self.regions) >= 128:
-                print "Too many samples in file:", self.filename, " (no more than 128 samples supported)"
-                sys.exit()
+                raise SFZ_instrument.ParseError(
+                    "Too many samples in file: " + self.filename +
+                    " (no more than 128 samples supported)"
+                )
             self.regions.append(SFZ_region())
             self.curr += 1
             if self.in_group:
-                self.regions[self.curr].update(self.group)
+                self.regions[self.curr].update(self.group_settings)
+                self.groups[-1].append(self.curr)
 
             self.in_region = True
         else:  # this should be the assignment
             segments = chunk.split('=')
             if len(segments) != 2:
                 # maybe, we can just append this data to the previous chunk
-                if self.last_chunk != False:
+                if self.last_chunk:
                     self.regions[self.curr][self.last_chunk[0]] += " " + segments[0]
                     segments = (self.last_chunk[0], self.regions[self.curr][self.last_chunk[0]])
                 else:
-                    print "Ambiguous spaces in SFZ file:", self.filename
-                    sys.exit()
+                    raise SFZ_instrument.ParseError(
+                        "Ambiguous spaces in SFZ file: " + self.filename
+                    )
             if self.in_region:
                 self.regions[self.curr][segments[0]] = segments[1]
             elif self.in_group:
-                self.group[segments[0]] = segments[1]
+                self.group_settings[segments[0]] = segments[1]
             self.last_chunk = segments
+
+    def is_region_used(self, i):
+        return any([j == i for j in self.notes_samples])
+
+    def collect_samples(self):
+        self.overlapping = []
+        self.ignored = []
+
+        for i, region in enumerate(self.regions):
+            for note in region['notes']:
+                if note < len(self.notes_samples) and note > -1:
+                    if self.notes_samples[note] != -1:
+                        self.overlapping.append(notes[note])
+                    self.notes_samples[note] = i
+                else:
+                    self.ignored.append(notes[note])
+
+        if OPTIONS['verbose']:
+            if len(self.overlapping) > 0:
+                wrap("/"*10 + " Notice: some regions are overlapping and would be overwritten")
+                wrap(", ".join(self.overlapping))
+            if len(self.ignored) > 0:
+                wrap("/"*10 + " Notice: some notes are out of range and ignored")
+                wrap(", ".join(self.ignored))
 
     def __init__(self, file):
         self.open(file)
@@ -225,259 +249,224 @@ class SFZ_instrument:
             line = self.read()
 
         # complete samples info
-        for region in self.regions:
+        for i, region in enumerate(self.regions):
             region.validate()
             lo = notes.index(region['lokey'])
             hi = notes.index(region['hikey'])
             region['notes'] = range(lo, hi + 1)
-            region.load_audio()
-            region['delta_sample'] = tempdir + str(time.clock()) + '.dat'
-            region['sample_length'] = len(region['sample_data'])
-            df = open(region['delta_sample'], 'w')
 
-            if region['sample_bittype'] == 1:
-                df.write(struct.pack('{0}B'.format(len(region['sample_data'])), *(region['sample_data'])))
-            elif region['sample_bittype'] == 2:
-                df.write(struct.pack('{0}H'.format(len(region['sample_data'])), *(region['sample_data'])))
-            elif region['sample_bittype'] == 3:
-                for byte in region['sample_data']:
-                    df.write(struct.pack('3B', byte & 0xFF0000 >> 0xFFFF, byte & 0xFF00 >> 0xFF, byte & 0xFF))
-            elif region['sample_bittype'] == 4:
-                df.write(struct.pack('{0}I'.format(len(region['sample_data'])), *(region['sample_data'])))
+        self.collect_samples()
 
-            df.close()
-            region['sample_data'] = ''
-            del region['sample_data']
-
-
-def wrap(text, width):
-    """
-    A word-wrap function that preserves existing line breaks
-    and most spaces in the text. Expects that existing line
-    breaks are posix newlines (\n).
-    """
-    return reduce(lambda line, word, width=width: '%s%s%s' %
-                  (line,
-                   ' \n'[(len(line) - line.rfind('\n') - 1
-                         + len(word.split('\n', 1)[0]
-                              ) >= width)],
-                   word),
-                  text.split(' ')
-                 )
-
-
-def magic(filename):
-    start = time.clock()
-    instrument = SFZ_instrument(cwd + filename)
-
-    file = open(cwd + filename[:-4] + '.temp.xi', 'w')
-    # create xi file
-    file.write(struct.pack('21s22sb20sh',\
-        'Extended Instrument: ', (filename[:-4] + ' ' * 22)[:22], 0x1a,\
-        pad_name('Samplicity v0.3', 20), 0x0))
-
-    notes_samples = [0 for i in range(96)]
-
-    overlapping = []
-    ignored = []
-
-    i = 0
-
-    for region in instrument.regions:
-        for note in region['notes']:
-            if note < len(notes_samples) and note > -1:
-                if notes_samples[note] != 0:
-                    overlapping.append(notes[note])
-                notes_samples[note] = i
+        used_regions = []
+        unused_regions = []
+        for i, region in enumerate(self.regions):
+            if self.is_region_used(i):
+                region.load_audio()
+                region['delta_sample'] = tempdir + str(time.clock()) + '.dat'
+                region['sample_length'] = len(region['sample_data']) * region['channels']
+                region['sample_data'].T.flatten().tofile(region['delta_sample'], format='f')
+                region['sample_data'] = ''
+                del region['sample_data']
+                used_regions.append(region)
             else:
-                ignored.append(notes[note])
-        i += 1
+                unused_regions.append(i)
 
-    if len(overlapping) > 0:
-        print "/" * 80
-        print wrap("Notice: some regions are overlapping and would be overwritten", 80)
-        print wrap(str(overlapping), 80)
-        print "/" * 80
-    if len(ignored) > 0:
-        print "/" * 80
-        print wrap("Notice: some notes are out of range and ignored", 80)
-        print wrap(str(ignored), 80)
-        print "/" * 80
+        self.regions = used_regions
 
-    file.write(struct.pack('96b', *(notes_samples)))
+        if unused_regions and OPTIONS['verbose']:
+            wrap("/"*10 + ' Notice: some regions are not used, skipping:', str(unused_regions))
 
-    stt = 50  # seconds-to-ticks converter
-# volume envelope
-    volume_points = 0
-    volume_ticks = 0
-    volume_envelope = []
-    if 'ampeg_attack' not in region:
-        volume_level = 0x40
-    else:
-        volume_level = 0
-    vol_sustain_point = 0
+        self.options = {}
+        for region in self.regions:
+            self.options.update(region)
 
-    #file.write(struct.pack('h', volume_ticks))
-    volume_envelope.append(volume_ticks)
-    if 'ampeg_delay' in region:
-        volume_ticks += float(region['ampeg_delay']) * stt
-        volume_points += 1
-        volume_level = 0
+        self.collect_samples()
 
-        #file.write(struct.pack('h', volume_level))
-        volume_envelope.append(volume_level)
-        #file.write(struct.pack('h', volume_ticks))
-        volume_envelope.append(volume_ticks)
+    def write_header(self):
+        # create xi file
+        self.output_file.write(struct.pack(
+            '21s22sb20sh',
+            'Extended Instrument: ',
+            (self.filename[:-4] + ' ' * 22)[:22], 0x1a, pad_name(VERSION, 20), 0x0
+        ))
 
-    if 'ampeg_start' in region:
-        volume_level = int(float(region['ampeg_start']) / 100 * stt)
+        self.output_file.write(struct.pack('96b', *(self.notes_samples)))
 
-    if 'ampeg_attack' in region:
-        volume_ticks += int(float(region['ampeg_attack']) * stt)
-
-    #file.write(struct.pack('h', volume_level))
-    volume_envelope.append(volume_level)
-    volume_points += 1
-
-    if 'ampeg_hold' in region:
-        volume_ticks += int(float(region['ampeg_hold']) * stt)
-    else:
-        volume_level = 0x40
-    #file.write(struct.pack('h', volume_ticks))
-    volume_envelope.append(volume_ticks)
-    #file.write(struct.pack('h', volume_level))
-    volume_envelope.append(volume_level)
-    volume_points += 1
-
-    if 'ampeg_decay' in region:
-        volume_ticks += int(float(region['ampeg_decay']) * stt)
-        #file.write(struct.pack('h', volume_ticks))
-        volume_envelope.append(volume_ticks)
-
-        if 'ampeg_sustain' in region:
-            #file.write(struct.pack('h', int(float(region['ampeg_sustain']) / 100 * stt)))
-            volume_envelope.append(int(float(region['ampeg_sustain']) / 100 * stt))
+    def write_envelopes(self):
+        stt = 50  # seconds-to-ticks converter
+        # volume envelope
+        volume_points = 0
+        volume_ticks = 0
+        volume_envelope = []
+        if 'ampeg_attack' not in self.options:
+            volume_level = 0x40
         else:
-            #file.write(struct.pack('h', 0))
-            volume_envelope.append(0)
+            volume_level = 0
+        vol_sustain_point = 0
 
-        volume_points += 1
-
-    if 'ampeg_sustain' in region:
-        volume_level = int(float(region['ampeg_sustain']) / 100 * stt)
-        #file.write(struct.pack('h', volume_ticks))
         volume_envelope.append(volume_ticks)
-        #file.write(struct.pack('h', volume_level))
-        volume_envelope.append(volume_level)
-        volume_points += 1
-        vol_sustain_point = volume_points - 1
+        if 'ampeg_delay' in self.options:
+            volume_ticks += float(self.options['ampeg_delay']) * stt
+            volume_points += 1
+            volume_level = 0
 
-    if 'ampeg_release' in region:
-        volume_ticks += int(float(region['ampeg_release']) * stt)
-        volume_level = 0x0
-        #file.write(struct.pack('h', volume_ticks))
-        volume_envelope.append(volume_ticks)
-        #file.write(struct.pack('h', volume_level))
+            volume_envelope.append(volume_level)
+            volume_envelope.append(volume_ticks)
+
+        if 'ampeg_start' in self.options:
+            volume_level = int(float(self.options['ampeg_start']) / 100 * stt)
+
+        if 'ampeg_attack' in self.options:
+            volume_ticks += int(float(self.options['ampeg_attack']) * stt)
+
         volume_envelope.append(volume_level)
         volume_points += 1
 
-    if volume_ticks > 512:
-        for i in range(len(volume_envelope) / 2):
-            volume_envelope[2 * i] = int(volume_envelope[2 * i] * 512 / volume_ticks)
-        print "/" * 80
-        print "Too long envelope:", volume_ticks, "ticks, shrinked to 512"
-        print "/" * 80
-
-    file.write(struct.pack('{0}h'.format(2 * volume_points), *(volume_envelope)))
-    file.write(struct.pack('{0}h'.format(2 * (12 - volume_points)), *(0 for i in range(2 * (12 - volume_points)))))
-    #envelope = [0, 64, 4, 50, 8, 36, 13, 28, 20, 22, 33, 18, 47, 14, 62, 8, 85, 4, 161, 0, 100, 0, 110, 0]
-    #file.write(struct.pack('24h', *(envelope)))
-    file.write(struct.pack('24h', *(0 for i in range(24))))  # panning envelope
-
-    file.write(struct.pack('b', volume_points))
-    file.write(struct.pack('b', 0))
-
-    file.write(struct.pack('b', vol_sustain_point))
-
-    file.write(struct.pack('5b', *(0 for i in range(5))))
-
-    volume_type = 0
-    if volume_points > 0:
-        volume_type += 0b1
-    if vol_sustain_point > 0:
-        volume_type += 0b10
-
-    file.write(struct.pack('b', volume_type))
-    file.write(struct.pack('b', 0))
-
-    # vibrato type/sweep/depth/rate
-    file.write(struct.pack('4b', *(0 for i in range(4))))
-
-# envelope data
-    #file.write(struct.pack('b'))
-
-    file.write(struct.pack('h', 0))  # volume fadeout
-    file.write(struct.pack('22b', *(0 for i in range(22))))  # extended data
-    file.write(struct.pack('h', len(instrument.regions)))  # number of samples
-
-    for region in instrument.regions:
-        file.write(struct.pack('i', region['sample_bittype'] * region['sample_length']))  # sample length
-        file.write(struct.pack('2i', 0, 0))  # sample loop start and end
-        # volume
-        if 'volume' in region:
-            file.write(struct.pack('B', math.floor(255 * math.exp(float(region['volume']) / 10) / math.exp(0.6))))  # 'cause volume is in dB
+        if 'ampeg_hold' in self.options:
+            volume_ticks += int(float(self.options['ampeg_hold']) * stt)
         else:
-            file.write(struct.pack('B', 255))
+            volume_level = 0x40
+        volume_envelope.append(volume_ticks)
+        volume_envelope.append(volume_level)
+        volume_points += 1
 
-        file.write(struct.pack('b', int(region['tune'])))  # finetune (signed!)
-        file.write(struct.pack('b', region['sample_type']))  # sample type
+        if 'ampeg_decay' in self.options:
+            volume_ticks += int(float(self.options['ampeg_decay']) * stt)
+            volume_envelope.append(volume_ticks)
 
-        #panning (unsigned!)
-        if 'pan' in region:
-            file.write(struct.pack('B', (float(region['pan']) + 100) * 255 / 200))
-        else:
-            file.write(struct.pack('B', 128))
+            if 'ampeg_sustain' in self.options:
+                volume_envelope.append(int(float(self.options['ampeg_sustain']) / 100 * stt))
+            else:
+                volume_envelope.append(0)
 
-        if 'pitch_keycenter' in region:
-            file.write(struct.pack('b',\
-             1 - notes.index(region['pitch_keycenter'])\
-             + notes.index('e6')))  # relative note - transpose c4 ~ 00
-        else:
-            file.write(struct.pack('b',\
-             1 - notes.index(region['lokey'])\
-             + notes.index('e6')))  # relative note - transpose c4 ~ 00
+            volume_points += 1
 
-        sample_name = pad_name(os.path.split(region['sample_path'])[1], 22)
+        if 'ampeg_sustain' in self.options:
+            volume_level = int(float(self.options['ampeg_sustain']) / 100 * stt)
+            volume_envelope.append(volume_ticks)
+            volume_envelope.append(volume_level)
+            volume_points += 1
+            vol_sustain_point = volume_points - 1
 
-        file.write(struct.pack('b', len(sample_name.strip(' '))))
-        file.write(struct.pack('22s', sample_name))
+        if 'ampeg_release' in self.options:
+            volume_ticks += int(float(self.options['ampeg_release']) * stt)
+            volume_level = 0x0
+            volume_envelope.append(volume_ticks)
+            volume_envelope.append(volume_level)
+            volume_points += 1
 
-    for region in instrument.regions:
-        df = open(region['delta_sample'], 'r')
-        file.write(df.read())
-        df.close()
+        if volume_ticks > 512:
+            for i in range(len(volume_envelope) / 2):
+                volume_envelope[2 * i] = int(volume_envelope[2 * i] * 512 / volume_ticks)
+            if OPTIONS['verbose']:
+                wrap("/"*10 + " Too long envelope: "+str(volume_ticks)+" ticks, shrinked to 512")
 
-        os.remove(region['delta_sample'])
-        region = {}
-        del region
+        self.output_file.write(struct.pack('{0}h'.format(2 * volume_points), *(volume_envelope)))
+        self.output_file.write(struct.pack('{0}h'.format(2 * (12 - volume_points)),
+                               *(0 for i in range(2 * (12 - volume_points)))))
 
-    print len(instrument.regions), 'samples'
-    print file.tell() / 1024, 'kB written in file "', filename, '" during', time.clock() - start, 'seconds'
-    file.close()
-    instrument = {}
-    del instrument
-    os.rename(cwd + filename[:-4] + '.temp.xi', cwd + filename[:-4] + '.xi')
+        self.output_file.write(struct.pack('24h', *(0 for i in range(24))))  # panning envelope
+
+        self.output_file.write(struct.pack('b', volume_points))
+        self.output_file.write(struct.pack('b', 0))
+
+        self.output_file.write(struct.pack('b', vol_sustain_point))
+
+        self.output_file.write(struct.pack('5b', *(0 for i in range(5))))
+
+        volume_type = 0
+        if volume_points > 0:
+            volume_type += 0b1
+        if vol_sustain_point > 0:
+            volume_type += 0b10
+
+        self.output_file.write(struct.pack('b', volume_type))
+        self.output_file.write(struct.pack('b', 0))
+
+        # vibrato type/sweep/depth/rate
+        self.output_file.write(struct.pack('4b', *(0 for i in range(4))))
+
+        # envelope data
+
+        self.output_file.write(struct.pack('h', 0))  # volume fadeout
+        self.output_file.write(struct.pack('22b', *(0 for i in range(22))))  # extended data
+
+    def write_regions_meta(self):
+        self.output_file.write(struct.pack('h', len(self.regions)))  # number of samples
+
+        for region in self.regions:
+            self.output_file.write(struct.pack(
+                'i', region['sample_bittype'] * region['sample_length']))  # sample length
+            self.output_file.write(struct.pack('2i', 0, 0))  # sample loop start and end
+            # volume
+            volume = 255
+            if 'volume' in region:
+                volume = math.floor(
+                    255 * math.exp(float(region['volume']) / 10) / math.exp(0.6)
+                )  # volume is in dB
+
+            self.output_file.write(struct.pack('B', volume))
+
+            self.output_file.write(struct.pack('b', int(region['tune'])))  # finetune (signed!)
+            self.output_file.write(struct.pack('b', region['sample_type']))  # sample type
+
+            #panning (unsigned!)
+            pan = 128
+            if 'pan' in region:
+                pan = (float(region['pan']) + 100) * 255 / 200
+            self.output_file.write(struct.pack('B', pan))
+
+            key = region['pitch_keycenter'] if 'pitch_keycenter' in region else region['lokey']
+
+            self.output_file.write(struct.pack(
+                'b',
+                1 - notes.index(key)
+                + notes.index('e6')
+            ))  # relative note - transpose c4 ~ 00
+
+            sample_name = pad_name(os.path.split(region['sample_path'])[1], 22)
+
+            self.output_file.write(struct.pack('b', len(sample_name.strip(' '))))
+            self.output_file.write(struct.pack('22s', sample_name))
+
+    def write_regions(self):
+        for region in self.regions:
+            df = open(region['delta_sample'], 'r')
+            self.output_file.write(df.read())
+            df.close()
+
+            os.remove(region['delta_sample'])
+            region = {}
+            del region
 
 start_time = time.clock()
 converted = 0
 
 try:
     for arg in sys.argv[1:]:
-        if not os.path.exists(cwd + arg[:-4] + '.xi') or force:
+        if not os.path.exists(cwd + arg):
+            print 'No file', arg, 'found, skipping'
+        elif not os.path.exists(cwd + arg[:-4] + '.xi') or OPTIONS['force']:
             print '-' * 80
             print "Converting \"", arg, "\""
             print '-' * 80
-            magic(arg)
+
+            start = time.clock()
+            instrument = SFZ_instrument(cwd + arg)
+
+            instrument.write_header()
+            instrument.write_envelopes()
+            instrument.write_regions_meta()
+            instrument.write_regions()
+
+            print len(instrument.regions), 'samples,',
+            print instrument.output_file.tell() / 1024,
+            print 'kB written during', time.clock() - start, 'seconds'
+            instrument.output_file.close()
+            instrument = {}
+            del instrument
+            os.rename(cwd + arg[:-4] + '.temp.xi', cwd + arg[:-4] + '.xi')
+
             converted += 1
         else:
             print "File", arg, "is already converted!"
@@ -490,4 +479,4 @@ finally:
         shutil.rmtree(tempdir)  # delete directory
     except OSError, e:
         if e.errno != 2:  # code 2 - no such file or directory
-            raise
+            raise e
