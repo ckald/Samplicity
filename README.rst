@@ -73,7 +73,14 @@ use this tool Python v2.7+ should be installed on your computer.
 Installation
 ~~~~~~~~~~~~
 
-To install this package, simply download and run in its directory:
+If you use ``pip``, you can just
+
+.. code:: bash
+
+    pip install samplicity
+
+To manually install this package, simply download and run in its
+directory:
 
 .. code:: bash
 
