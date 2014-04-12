@@ -67,18 +67,34 @@ you can create your sample pack without any specific software. See more
 Usage
 -----
 
-Samplicity is writted in `python v2.7.3 <http://www.python.org/>`__. To
+Samplicity is written in `python v2.7.3 <http://www.python.org/>`__. To
 use this tool Python v2.7+ should be installed on your computer.
+
+Installation
+~~~~~~~~~~~~
+
+To install this package, simply download and run in its directory:
+
+.. code:: bash
+
+    python setup.py install
+
+Now you're ready to use Samplicity! Try:
+
+.. code:: bash
+
+    samplicity
 
 Sample convertion
 ~~~~~~~~~~~~~~~~~
 
-To convert single sample pack, navigate in **terminal/bash/command**
-line to sample pack folder and run the following command:
+To convert single sample pack, navigate in
+**terminal/bash/command**\ line to sample pack folder and run the
+following command:
 
 .. code:: bash
 
-    python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE PACK NAME>.sfz"
+    python samplicity "<SAMPLE PACK NAME>.sfz"
 
 If python is installed, path to samplicity is right and sample pack is a
 valid .SFZ file, you'll see something like this:
@@ -86,45 +102,87 @@ valid .SFZ file, you'll see something like this:
 .. code:: bash
 
     --------------------------------------------------------------------------------
-    Converting " Keys - Grand Piano (Forte).sfz "
+    Converting " Keys - Grand Piano.sfz "
     --------------------------------------------------------------------------------
-    * 16 bit stereo sample " samples/grand piano/piano-f-c1.wav " 726 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#1.wav " 735 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#1.wav " 734 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a1.wav " 732 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c2.wav " 725 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#2.wav " 709 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#2.wav " 700 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a2.wav " 695 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c3.wav " 623 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#3.wav " 639 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#3.wav " 607 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a3.wav " 577 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c4.wav " 563 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#4.wav " 526 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#4.wav " 499 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a4.wav " 461 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c5.wav " 441 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#5.wav " 410 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#5.wav " 361 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a5.wav " 334 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c6.wav " 322 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#6.wav " 273 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#6.wav " 218 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a6.wav " 204 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c7.wav " 138 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-d#7.wav " 104 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-f#7.wav " 97 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-a7.wav " 104 kB
-    * 16 bit stereo sample " samples/grand piano/piano-f-c8.wav " 103 kB
-    ////////////////////////////////////////////////////////////////////////////////
-    Notice: some notes are out of range and ignored
-    ['c8']
-    ////////////////////////////////////////////////////////////////////////////////
-    29 samples
-    26751 kB written in file " Keys - Grand Piano (Forte).sfz " during 9.435801 seconds
+    ////////// Notice: some regions are overlapping and would be overwritten
+    c1, c#1, d1, d#1, e1, f1, f#1, g1, g#1, a1, a#1, b1, c2, c#2, d2, d#2, e2, f2,
+    f#2, g2, g#2, a2, a#2, b2, c3, c#3, d3, d#3, e3, f3, f#3, g3, g#3, a3, a#3, b3,
+    c4, c#4, d4, d#4, e4, f4, f#4, g4, g#4, a4, a#4, b4, c5, c#5, d5, d#5, e5, f5,
+    f#5, g5, g#5, a5, a#5, b5, c6, c#6, d6, d#6, e6, f6, f#6, g6, g#6, a6, a#6, b6,
+    c7, c#7, d7, d#7, e7, f7, f#7, g7, g#7, a7, a#7, b7
+    ////////// Notice: some notes are out of range and ignored
+    c8
+    ////////// Notice: some regions are not used, skipping:
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 26, 27, 28, 29
 
-    1 files converted in 9.437803 seconds
+    29 samples, 54225 kB written during 0.347247 seconds
+
+    1 files converted in 0.352371 seconds
+
+You can control verbosity of output using ``--verbose`` command:
+
+.. code:: bash
+
+    $ samplicity Keys\ -\ Grand\ Piano.sfz --force --verbose 0
+    --------------------------------------------------------------------------------
+    Converting " Keys - Grand Piano.sfz "
+    --------------------------------------------------------------------------------
+
+    29 samples, 54225 kB written during 0.35783 seconds
+
+    1 files converted in 0.362867 seconds
+
+.. code:: bash
+
+    $ samplicity Keys\ -\ Grand\ Piano.sfz --force --verbose 2
+    --------------------------------------------------------------------------------
+    Converting " Keys - Grand Piano.sfz "
+    --------------------------------------------------------------------------------
+    ////////// Notice: some regions are overlapping and would be overwritten
+    c1, c#1, d1, d#1, e1, f1, f#1, g1, g#1, a1, a#1, b1, c2, c#2, d2, d#2, e2, f2,
+    f#2, g2, g#2, a2, a#2, b2, c3, c#3, d3, d#3, e3, f3, f#3, g3, g#3, a3, a#3, b3,
+    c4, c#4, d4, d#4, e4, f4, f#4, g4, g#4, a4, a#4, b4, c5, c#5, d5, d#5, e5, f5,
+    f#5, g5, g#5, a5, a#5, b5, c6, c#6, d6, d#6, e6, f6, f#6, g6, g#6, a6, a#6, b6,
+    c7, c#7, d7, d#7, e7, f7, f#7, g7, g#7, a7, a#7, b7
+    ////////// Notice: some notes are out of range and ignored
+    c8
+    * pcm16 stereo sample " samples/grand piano/piano-p-c1.wav " 1493336 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#1.wav " 1516008 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#1.wav " 1509820 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a1.wav " 1498120 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c2.wav " 1481792 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#2.wav " 1449812 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#2.wav " 1439776 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a2.wav " 1417312 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c3.wav " 1261156 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#3.wav " 1303952 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#3.wav " 1243268 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a3.wav " 1182584 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c4.wav " 1153464 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#4.wav " 1079780 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#4.wav " 1025388 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a4.wav " 953004 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c5.wav " 918164 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#5.wav " 840008 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#5.wav " 753584 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a5.wav " 698204 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c6.wav " 676156 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#6.wav " 573092 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#6.wav " 512252 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a6.wav " 425984 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c7.wav " 404128 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-d#7.wav " 270348 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-f#7.wav " 246012 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-a7.wav " 224744 kB
+    * pcm16 stereo sample " samples/grand piano/piano-p-c8.wav " 211276 kB
+    ////////// Notice: some regions are not used, skipping:
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 26, 27, 28, 29
+
+    29 samples, 54225 kB written during 0.346783 seconds
+
+    1 files converted in 0.351817 seconds
 
 Batch conversion
 ~~~~~~~~~~~~~~~~
@@ -134,8 +192,8 @@ Samplicity as you want. Or even use a wildcard
 
 .. code:: bash
 
-    python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE 1>.sfz" "<SAMPLE 2>.sfz" "<SAMPLE 3>.sfz"
-    python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" *.sfz
+    samplicity "<SAMPLE 1>.sfz" "<SAMPLE 2>.sfz" "<SAMPLE 3>.sfz"
+    samplicity *.sfz
 
 Reconversion
 ~~~~~~~~~~~~
@@ -145,7 +203,7 @@ convert it again. To force reconversion, add ``--force`` attribute:
 
 .. code:: bash
 
-    python "<PATH TO SAMPLICITY FOLDER>/samplicity.py" "<SAMPLE NAME>.sfz" --force
+    samplicity "<SAMPLE NAME>.sfz" --force
 
 Package
 -------
